@@ -1,0 +1,14 @@
+StateT monad
+
+runStateT :: StateT s m a -> s -> m (a, s)
+
+evalStateT :: StateT s m a -> s -> m a
+
+StateT is the initial value, and the monad a specifies how to combine operations on it
+
+For example: StateT Char [] Int
+This would have an initial state 'c', and some function that modified c somehow and produced an int (Transform c to the nearest vowel and record how far it was from the vowel)
+
+Some function would have the signature f :: StateT Char [] Int. That function would have a do block that can get & set char, and also each line x <- val would be combined via the
+list monad. This would give all the different possible ways that 'c' could be transformed.
+  
