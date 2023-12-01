@@ -21,18 +21,21 @@ findStringMaybe x str = case T'.indices x str of
                          _ -> Nothing
 
 findDigitOrString :: T.Text -> Int
-findDigitOrString str = let allSpelledDigits = zip [1,2..] $ map T.pack ["one", "two", "three", "four", "five", "six", "seven", "eight", "nine"]
-                            allOccurrences = filter (\(_, idx) -> isJust idx) $ map (\(digit, name) -> (digit, findStringMaybe name str)) allSpelledDigits in
-                              case allOccurrences of
-                                [] -> digitToInt $ T.head $ T.filter isDigit str
-                                lst -> fst $ minimumBy (comparing snd) lst
+findDigitOrString str = let allSpelledDigits = map T.pack ["one", "two", "three", "four", "five", "six", "seven", "eight", "nine"]
+                            allNumericDigits = map T.pack ["1", "2", "3", "4", "5", "6", "7", "8", "9"]
+                            locs = f str allSpelledDigits ++ f str allNumericDigits in
+                            fst $ minimumBy (comparing snd) locs
 
 findDigitOrString' :: T.Text -> Int
-findDigitOrString' str = let allSpelledDigits = zip [1,2..] $ map (T.reverse . T.pack) ["one", "two", "three", "four", "five", "six", "seven", "eight", "nine"]
-                             allOccurrences = filter (\(_, idx) -> isJust idx) $ map (\(digit, name) -> (digit, findStringMaybe name str)) allSpelledDigits in
-                              case allOccurrences of
-                                [] -> digitToInt $ T.head $ T.filter isDigit str
-                                lst -> fst $ minimumBy (comparing snd) lst
+findDigitOrString' str = let allSpelledDigits = map (T.reverse . T.pack) ["one", "two", "three", "four", "five", "six", "seven", "eight", "nine"]
+                             allNumericDigits = map T.pack ["1", "2", "3", "4", "5", "6", "7", "8", "9"]
+                             locs = f str allSpelledDigits ++ f str allNumericDigits in
+                             fst $ minimumBy (comparing snd) locs
+
+
+f :: T.Text -> [T.Text] -> [(Int, Maybe Int)] -- index is second
+f str candidates = let allSpelledDigits = zip [1,2..] candidates in
+                       filter (\(_, idx) -> isJust idx) $ map (\(digit, name) -> (digit, findStringMaybe name str)) allSpelledDigits
 
 part2LineRunner :: T.Text -> Int
 part2LineRunner str = read [intToDigit $ findDigitOrString str, intToDigit . findDigitOrString' $ T.reverse str] :: Int
@@ -45,7 +48,7 @@ part1 = do
 
 part2 :: IO ()
 part2 = do
-          let filename = "sample_input_2.txt"
+          let filename = "input.txt"
           contents <- T.lines <$> TIO.readFile filename
           print . sum $ map part2LineRunner contents
 
