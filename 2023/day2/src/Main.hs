@@ -6,10 +6,12 @@ import Text.Megaparsec
 import Text.Megaparsec.Char
 import Text.Megaparsec.Char.Lexer (decimal)
 
+import Data.List (foldl')
 import qualified Data.Text as T
 import qualified Data.Map as M
 import qualified Data.Text.IO as TIO
 import Data.Void (Void)
+import Data.Maybe (fromJust)
 
 type Parser = Parsec Void String
 
@@ -39,12 +41,28 @@ parseGame = do
   rounds <- parseRound `sepBy` string "; " <* newline
   return Game {..}
 
+condenseGames :: [M.Map String Int] -> M.Map String Int
+condenseGames = foldl' combine M.empty
+  where
+    combine = M.foldlWithKey' (\mAcc k v -> M.insertWith max k v mAcc)
+
+f :: Game -> (Int, Round)
+f Game { gameId, rounds } = (gameId, condenseGames rounds)
+
+enoughCubes :: Round -> Bool
+enoughCubes r = fromJust (M.lookup "red" r) <= 12 
+                  && fromJust (M.lookup "green" r) <= 13 
+                  && fromJust (M.lookup "blue" r) <= 14
+
 part1 :: IO ()
 part1 = do
-          contents <- readFile "sample_input.txt"
+          contents <- readFile "input.txt"
           case runParser (many parseGame) "filename_for_error_message.txt" contents of
-              Left e -> putStr (errorBundlePretty e)
-              Right games -> do print games
+            Left e -> putStr (errorBundlePretty e)
+            Right games -> do 
+              let condensed = map f games
+              print . sum . map fst $ filter (enoughCubes . snd) condensed
+
 
 part2 :: IO ()
 part2 = do
