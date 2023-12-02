@@ -32,34 +32,12 @@ parseRound = do
   e <- parseEntry `sepBy` string ", "
   return $ M.fromList e
 
--- Game 1: 3 blue, 4 red; 1 red, 2 green, 6 blue; 2 green
 parseGame :: Parser Game
 parseGame = do
   _ <- string "Game "
-  gameId <- decimal
-  _ <- string ": "
-  rounds <- parseRound `sepBy` string ";"
+  gameId <- decimal <* string ": "
+  rounds <- parseRound `sepBy` string "; " <* newline
   return Game {..}
-
-
-{- 
-parseMonkey :: Parser Monkey
-parseMonkey = do
-  _ <- string "Monkey " *> some digitChar
-  _ <- string ":" *> space *> string "Starting items: "
-  items <- S.fromList <$> parseIntList
-  _ <- space
-  operation <- parseOperation
-  _ <- space
-  divisor <- parseEndTest
-  _ <- space
-  trueTarget <- string "If true: throw to monkey " *> L.decimal
-  _ <- space
-  falseTarget <- string "If false: throw to monkey " *> L.decimal
-  _ <- space
-  let totalSeen = 0 -- length items
-  return Monkey {..}
--}
 
 part1 :: IO ()
 part1 = do
